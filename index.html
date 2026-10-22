@@ -277,7 +277,7 @@
             </div>
           </div>
 
-          <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-600 active:from-emerald-800 active:to-emerald-700 text-white font-black text-[15px] shadow-md transition">
+          <button id="m-submit-btn" type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-600 active:from-emerald-800 active:to-emerald-700 text-white font-black text-[15px] shadow-md transition">
             사전 참석 예약 신청하기
           </button>
         </form>
@@ -353,19 +353,45 @@
       }
     }
 
-    function handleMobileRsvp(e) {
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpjbEWKoh-WTO1iw3oQLZ5TIHOIViCFogsa7G00K9wsl7R58Bkx82mZq8X-PQxnlBKyg/exec';
+
+    async function handleMobileRsvp(e) {
       e.preventDefault();
       const name = document.getElementById('m-name').value.trim();
       const phone = document.getElementById('m-phone').value.trim();
       const region = document.getElementById('m-region').value.trim();
       const count = document.getElementById('m-count').value;
       const type = document.getElementById('m-type').value;
+      const btn = document.getElementById('m-submit-btn');
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '예약 접수 중입니다...';
+      }
+
+      const payload = { name, phone, region, count, type };
+
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.error('RSVP 전송 오류:', err);
+      }
 
       const box = document.getElementById('rsvp-confirm-box');
       const txt = document.getElementById('rsvp-confirm-text');
       txt.textContent = `${name}님(${phone}), 희망지역 [${region}] · ${count} · [${type}] 사전 참석 예약 신청이 접수되었습니다. 본사 담당자가 확인 후 오시는 길 및 지하 1층 무료 주차 안내를 도와드리겠습니다.`;
       box.classList.remove('hidden');
       showMobileToast('사전 참석 예약 신청이 완료되었습니다.');
+
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '사전 참석 예약 신청 완료';
+      }
     }
   </script>
 </body>
